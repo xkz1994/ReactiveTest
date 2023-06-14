@@ -2,7 +2,25 @@
 using System.Reactive.Linq;
 
 namespace ReactiveTest;
+/*
+public interface IObservable<out T>
+{
+      //Notifies the provider that an observer is to receive notifications.
+      IDisposable Subscribe(IObserver<T> observer);
+}
 
+public interface IObserver<in T>
+{
+    //Notifies the observer that the provider has finished sending push-based notifications.
+    void OnCompleted();
+ 
+    //Notifies the observer that the provider has experienced an error condition.
+    void OnError(Exception error);
+    
+    //Provides the observer with new data.
+    void OnNext(T value);
+}
+ */
 public static class ObservableGenerateTest
 {
     /// <summary>
