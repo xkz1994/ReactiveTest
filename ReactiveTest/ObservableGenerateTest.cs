@@ -227,7 +227,6 @@ public static class ObservableGenerateTest
          * Completed
          */
 
-
         Console.WriteLine("=============== Never 空的永远不会结束的可观察序列 =====================");
         // 1. 表示等待某些条件发生的无限等待状态。
         // 2. 在某些特殊情况下，需要创建一个 Observable，但不会发出任何值。
@@ -270,7 +269,6 @@ public static class ObservableGenerateTest
             error => Console.WriteLine("Error: " + error),
             () => Console.WriteLine("Completed")
         );
-
 
         Console.WriteLine("=============== Observable.Interval(TimeSpan.FromSeconds(1)).Take(5) 定时发出递增的长整型值 =====================");
         var observableTimer = Observable.Interval(TimeSpan.FromSeconds(1))

@@ -1,5 +1,7 @@
 ﻿using System.Reactive.Linq;
 
+// ReSharper disable UnusedParameter.Local
+
 namespace ReactiveTest;
 
 public static class EventTest
@@ -76,6 +78,27 @@ public static class EventTest
         /*
          * Button clicked ReactiveTest.EventTest+Button System.EventArgs
          */
+
+        Console.WriteLine("== 使用 Observable.FromEventPattern eventName to Observable ==");
+        var watch = new FileSystemWatcher
+        {
+            Path = "C:\\TEST",
+            IncludeSubdirectories = true,
+            Filter = "*.jpg",
+            NotifyFilter = NotifyFilters.FileName |
+                           NotifyFilters.LastWrite |
+                           NotifyFilters.CreationTime,
+            EnableRaisingEvents = true
+        };
+        using var watchSubscribe = Observable.FromEventPattern<FileSystemEventArgs>(watch, nameof(watch.Created))
+            // where条件过滤, 类似于linq
+            .Where(e => Path.GetExtension(e.EventArgs.FullPath).ToLower() == ".jpg")
+            .Subscribe(e => { Console.WriteLine(e.EventArgs.FullPath); });
+
+        /*
+         * C:\TEST\TEST.jpg // 当有文件创建时，会触发事件触发订阅, 打印文件路径
+         */
+
         Console.WriteLine("== 使用 Observable.FromEvent 可以将任何 .NET 事件转换为 Observable ==");
 
         var myClass = new MyClass();
@@ -100,7 +123,7 @@ public static class EventTest
         var foo = new Foo();
 
         var observableBar = Observable.FromEvent<BarHandler, (int x, string y)>(
-            onNextHandler => (int x, string y) => onNextHandler((x, y)),
+            onNextHandler => (x, y) => onNextHandler((x, y)),
             h => foo.BarEvent += h,
             h => foo.BarEvent -= h);
 
@@ -120,6 +143,7 @@ public static class EventTest
          * ys: (1, Third) // xs释放，所以不触发
          * Event handler removed // 释放触发 -=
          */
+
         Console.ReadKey();
     }
 }
