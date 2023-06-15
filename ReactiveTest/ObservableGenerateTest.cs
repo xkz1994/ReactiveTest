@@ -34,6 +34,22 @@ public static class ObservableGenerateTest
     /// </summary>
     public static void Test()
     {
+        ToObservableTest();
+        RangeTest();
+        GenerateTest();
+        DeferTest();
+        NeverTest();
+        ThrowTest();
+        EmptyTest();
+        UsingTest();
+        FromAsyncTest1();
+        FromAsyncTest2();
+        IntervalTest();
+        Console.ReadKey();
+    }
+
+    public static void CreateTest()
+    {
         Console.WriteLine("=============== 使用 Create 方法创建 Observable 手动创建 Observable 的方式 =====================");
         var observableCreate = Observable.Create<int>(observer =>
         {
@@ -84,7 +100,10 @@ public static class ObservableGenerateTest
              * Observer has unsubscribed
              */
         }
+    }
 
+    public static void ToObservableTest()
+    {
         Console.WriteLine("=============== 使用 ToObservable 方法创建 Observable IEnumerable<T>转化为IObservable<T> =====================");
         var numbers = new[] { 1, 2, 3, 4, 5 };
         var observableToObservable = numbers.ToObservable();
@@ -102,7 +121,10 @@ public static class ObservableGenerateTest
          * 5
          * Completed
          */
+    }
 
+    public static void ReturnTest()
+    {
         Console.WriteLine("=============== 使用 Return 方法创建 Observable 创建一个只发出单个值 =====================");
         // 使用 Observable.Return 可以方便地创建一个只发出单个值的 Observable，适用于需要立即获得一个值并完成的场景
         var observableReturn = Observable.Return("Hello, world!");
@@ -117,7 +139,10 @@ public static class ObservableGenerateTest
          * Hello, world!
          * Completed
          */
+    }
 
+    public static void RangeTest()
+    {
         Console.WriteLine("=============== 使用 Range 方法创建 Observable 指定范围内连续整数值序列 =====================");
         // 使用 Observable.Return 可以方便地创建一个只发出单个值的 Observable，适用于需要立即获得一个值并完成的场景
         var observableRange = Observable.Range(1, 5);
@@ -136,7 +161,10 @@ public static class ObservableGenerateTest
          * 5
          * Completed
          */
+    }
 
+    public static void GenerateTest()
+    {
         Console.WriteLine("=============== 使用 Generate 方法创建 Observable 根据指定的初始状态和条件生成一个序列 =====================");
         // 使用 Observable.Return 可以方便地创建一个只发出单个值的 Observable，适用于需要立即获得一个值并完成的场景
         var observableGenerate = Observable.Generate(
@@ -160,7 +188,10 @@ public static class ObservableGenerateTest
          * 16
          * Completed
          */
+    }
 
+    public static void DeferTest()
+    {
         Console.WriteLine("=============== Defer 延迟创建(传入工厂产生Observable) 延迟创建（当有观察者订阅时才创建） =====================");
         // 比如要连接数据库进行查询，如果没有观察者，那么数据库连接会一直被占用，这样会造成资源浪费。使用Deffer可以解决这个问题。
         // 使用 Observable.Defer 可以延迟创建 Observable，这在需要根据每个订阅动态生成值的场景中非常有用。例如，当你需要每次订阅时生成不同的初始值，或者需要在订阅时执行一些特定的逻辑来生成 Observable，都可以使用 Defer 方法。
@@ -226,7 +257,10 @@ public static class ObservableGenerateTest
          * 66
          * Completed
          */
+    }
 
+    public static void NeverTest()
+    {
         Console.WriteLine("=============== Never 空的永远不会结束的可观察序列 =====================");
         // 1. 表示等待某些条件发生的无限等待状态。
         // 2. 在某些特殊情况下，需要创建一个 Observable，但不会发出任何值。
@@ -240,7 +274,10 @@ public static class ObservableGenerateTest
         /*
          *
          */
+    }
 
+    public static void ThrowTest()
+    {
         Console.WriteLine("=============== Throw 立即抛出指定的异常的可观察序列 =====================");
         /*
          * 1. 模拟错误条件：你可以使用 Observable.Throw 来模拟某些操作的错误条件，以测试错误处理逻辑。
@@ -257,6 +294,36 @@ public static class ObservableGenerateTest
          * Error: Something went wrong
          */
 
+        Console.WriteLine("---------");
+        var observableUsing1 = Observable.Using(
+            () => new FileStream("file.txt", FileMode.Open), // 资源创建工厂
+            fileStream =>
+            {
+                // ReSharper disable once RedundantAssignment
+                var reader = new StreamReader(fileStream);
+                return Observable.FromAsync(() =>
+                {
+                    throw new Exception("Error"); // 会被订阅捕获到
+#pragma warning disable CS0162
+                    return reader.ReadToEndAsync();
+#pragma warning restore CS0162
+                }); // 读取所有内容
+            } // Observable工厂
+        );
+        using var subscriptionUsing1 = observableUsing1.Subscribe(
+            line => Console.WriteLine(line),
+            error => Console.WriteLine("Error: " + error),
+            () => Console.WriteLine("Completed")
+        );
+        /*
+         * Error: System.Exception: Error
+           at ReactiveTest.ObservableGenerateTest.<>c.<Test>b__0_39(FileStream fileStream) in C:\Users\ASUS\source\repos\ReactiveTest\ReactiveTest\ObservableGenerateTest.cs:line 303
+           at System.Reactive.Linq.ObservableImpl.Using`2._.Run(Using`2 parent)
+         */
+    }
+
+    public static void EmptyTest()
+    {
         Console.WriteLine("=============== Empty 表示一个立即完成且不发出任何值的 表示一个空的事件流，不包含任何数据项 =====================");
         /*
          * 1. 表示一个空的事件流：当你需要创建一个不包含任何数据项的事件流，但需要表示完成状态时，可以使用 Observable.Empty。
@@ -269,7 +336,88 @@ public static class ObservableGenerateTest
             error => Console.WriteLine("Error: " + error),
             () => Console.WriteLine("Completed")
         );
+    }
 
+    public static void UsingTest()
+    {
+        Console.WriteLine("=============== Using 可以确保在订阅结束时资源被正确释放，无论是文件、数据库连接还是其他需要手动关闭的资源。这样可以减少资源泄漏的风险，并确保代码在处理完资源后进行清理工作 =====================");
+
+        var observableUsing = Observable.Using(
+            () => new FileStream("file.txt", FileMode.Open), // 资源创建工厂
+            fileStream =>
+            {
+                var reader = new StreamReader(fileStream);
+                return Observable.FromAsync(() => reader.ReadToEndAsync()); // 读取所有内容
+            } // Observable工厂
+        );
+
+        using var subscriptionUsing = observableUsing.Subscribe(
+            line => Console.WriteLine(line),
+            error => Console.WriteLine("Error: " + error),
+            () => Console.WriteLine("Completed")
+        );
+
+        /*
+         * 测试文本1
+         * 测试文本2
+         * 测试文本3
+         * 测试文本4
+         * Completed
+         */
+        Console.WriteLine("---------");
+        var observableUsing2 = Observable.Using(
+            () => File.OpenText("file.txt"), // 资源创建工厂
+            stream => Observable.Generate(
+                stream, //initial state
+                s => !s.EndOfStream, //we continue until we reach the end of the file
+                s => s, //the stream is our state, it holds the position in the file
+                s => s.ReadLine()) //each iteration will emit the current line (and moves to the next)
+        ); // Observable工厂
+        using var subscriptionUsing2 = observableUsing2.Subscribe(
+            line => Console.WriteLine(line),
+            error => Console.WriteLine("Error: " + error),
+            () => Console.WriteLine("Completed")
+        );
+
+        /*
+         * 测试文本1
+         * 测试文本2
+         * 测试文本3
+         * 测试文本4
+         * Completed
+         */
+    }
+
+    public static void FromAsyncTest1()
+    {
+        Console.WriteLine("=============== Observable.FromAsync 方法用于将异步操作转换为 Observable。它接受一个返回 Task 或 Task<T> 的异步方法，并返回一个对应的 Observable =====================");
+        var observable = Observable.FromAsync(() => DownloadDataAsync("https://www.baidu.com"));
+
+        using var subscription = observable.Subscribe(
+            data => Console.WriteLine("Data downloaded: " + data.Substring(0, 10)),
+            error => Console.WriteLine("Error: " + error),
+            () => Console.WriteLine("Download completed")
+        );
+        Thread.Sleep(2000); // 出作用域 订阅dispose了所以加个阻塞
+        /*
+         *Data downloaded: <!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">...
+         */
+    }
+
+    public static void FromAsyncTest2()
+    {
+        Console.WriteLine("=============== Observable.FromAsync 不订阅不执行DownloadDataAsync =====================");
+        var observable = Observable.FromAsync(() => DownloadDataAsync("https://www.baidu.com"));
+
+        // var subscription = observable.Subscribe(
+        //     data => Console.WriteLine("Data downloaded: " + data),
+        //     error => Console.WriteLine("Error: " + error),
+        //     () => Console.WriteLine("Download completed")
+        // );
+    }
+
+    public static void IntervalTest()
+    {
         Console.WriteLine("=============== Observable.Interval(TimeSpan.FromSeconds(1)).Take(5) 定时发出递增的长整型值 =====================");
         var observableTimer = Observable.Interval(TimeSpan.FromSeconds(1))
             .Take(5);
@@ -287,6 +435,16 @@ public static class ObservableGenerateTest
          * 4
          * Completed
          */
-        Console.ReadKey();
+        Console.ReadKey(); // 出作用域 订阅dispose了所以加个阻塞
     }
+
+    #region 共有方法
+
+    public static async Task<string> DownloadDataAsync(string url)
+    {
+        using var httpClient = new HttpClient();
+        return await httpClient.GetStringAsync(url);
+    }
+
+    #endregion 共有方法
 }

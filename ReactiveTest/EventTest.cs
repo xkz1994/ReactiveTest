@@ -59,6 +59,16 @@ public static class EventTest
 
     public static void Test()
     {
+        FromEventPatternTest();
+        FromEventPatternEventNameTest();
+        FromEventTest();
+        FromEventCommonTest();
+
+        Console.ReadKey();
+    }
+
+    public static void FromEventPatternTest()
+    {
         Console.WriteLine("== 使用 Observable.FromEventPattern 可以将任何 .NET 事件转换为 Observable ==");
         var button = new Button();
         // 将 Click 事件转换为 Observable
@@ -78,7 +88,10 @@ public static class EventTest
         /*
          * Button clicked ReactiveTest.EventTest+Button System.EventArgs
          */
+    }
 
+    public static void FromEventPatternEventNameTest()
+    {
         Console.WriteLine("== 使用 Observable.FromEventPattern eventName to Observable ==");
         var watch = new FileSystemWatcher
         {
@@ -98,7 +111,12 @@ public static class EventTest
         /*
          * C:\TEST\TEST.jpg // 当有文件创建时，会触发事件触发订阅, 打印文件路径
          */
+        Console.WriteLine("阻塞");
+        Console.ReadKey(); // 出作用域 订阅dispose了所以加个阻塞
+    }
 
+    public static void FromEventTest()
+    {
         Console.WriteLine("== 使用 Observable.FromEvent 可以将任何 .NET 事件转换为 Observable ==");
 
         var myClass = new MyClass();
@@ -117,7 +135,13 @@ public static class EventTest
             () => Console.WriteLine("Completed"));
 
         myClass.TriggerEvent("Hello, World!");
+        /*
+         * Hello, World!
+         */
+    }
 
+    public static void FromEventCommonTest()
+    {
         Console.WriteLine("== 一般事件使用 Observable.FromEvent ==");
 
         var foo = new Foo();
@@ -143,7 +167,5 @@ public static class EventTest
          * ys: (1, Third) // xs释放，所以不触发
          * Event handler removed // 释放触发 -=
          */
-
-        Console.ReadKey();
     }
 }
