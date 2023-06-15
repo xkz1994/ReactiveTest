@@ -44,6 +44,7 @@ public static class ObservableGenerateTest
         UsingTest();
         FromAsyncTest1();
         FromAsyncTest2();
+        TimerTest();
         IntervalTest();
         Console.ReadKey();
     }
@@ -416,6 +417,50 @@ public static class ObservableGenerateTest
         // );
     }
 
+    public static void TimerTest()
+    {
+        /*
+         * Observable.Timer: 在指定的延迟时间过去后，`仅触发一次`，并生成一个值。经过延迟时间后触发第一次
+         * Observable.Interval: 在指定的时间间隔内，按照固定的间隔时间`重复触发`，并生成递增的值序列。间隔时间后依次触发
+         * Observable.Timer 接受一个或两个参数：
+         *    1. 如果只提供延迟时间，那么定时器将在延迟时间后触发一次。
+         *    2. 如果同时提供延迟时间和间隔时间，那么定时器将在延迟时间后第一次触发，并在每次触发后按照指定的间隔时间进行重复触发。
+         * Observable.Interval 只接受一个参数，表示时间间隔，定时器会按照该间隔时间重复触发。
+         */
+        // 在指定的延迟时间过去后2s，仅触发一次，并生成一个值（从0开始）
+        var observable1 = Observable.Timer(TimeSpan.FromSeconds(2));
+
+        using var subscription1 = observable1.Subscribe(
+            value => Console.WriteLine("Timer ticked: " + value),
+            error => Console.WriteLine("Error: " + error),
+            () => Console.WriteLine("Timer completed")
+        );
+        /*
+         * Timer ticked: 0
+         * Timer completed
+         */
+        // 在这个示例中，我们使用两个参数的重载形式来指定延迟和间隔时间。定时器会在延迟时间后第一次触发，并在每次触发后按照指定的间隔时间进行重复触发。
+        // 1. 延迟时间2s后第一次触发
+        // 2. 首次触发后按照指定的间隔时间1s进行`重复触发`（从1开始）
+        var observable = Observable.Timer(TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(1)).Take(5);
+
+        using var subscription = observable.Subscribe(
+            value => Console.WriteLine("Timer ticked: " + value),
+            error => Console.WriteLine("Error: " + error),
+            () => Console.WriteLine("Timer completed")
+        );
+        /*
+         * Timer ticked: 0
+         * Timer ticked: 1
+         * Timer ticked: 2
+         * Timer ticked: 3
+         * Timer ticked: 4
+         * Timer completed
+         */
+        Console.WriteLine("阻塞");
+        Console.ReadKey(); // 出作用域 订阅dispose了所以加个阻塞
+    }
+
     public static void IntervalTest()
     {
         Console.WriteLine("=============== Observable.Interval(TimeSpan.FromSeconds(1)).Take(5) 定时发出递增的长整型值 =====================");
@@ -435,6 +480,7 @@ public static class ObservableGenerateTest
          * 4
          * Completed
          */
+        Console.WriteLine("阻塞");
         Console.ReadKey(); // 出作用域 订阅dispose了所以加个阻塞
     }
 
