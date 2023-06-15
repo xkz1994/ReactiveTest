@@ -1,4 +1,4 @@
 ﻿using ReactiveTest;
 
-ObservableGenerateTest.Test();
-// EventTest.Test();
+// ObservableGenerateTest.Test();
+EventTest.Test();

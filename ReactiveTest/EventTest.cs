@@ -4,6 +4,8 @@
 
 namespace ReactiveTest;
 
+
+// 不会Completed
 public static class EventTest
 {
     public class Button
